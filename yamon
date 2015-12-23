@@ -1,0 +1,23 @@
+#! /bin/zsh
+
+#TODO use -fromfile argument of inotifywait, generate the file from ag
+TARGET=$1
+shift
+COMMAND=$@
+
+echo "The target is: $TARGET"
+echo "The command is: $COMMAND"
+
+#inotifywait -e close_write -r . &&  echo "shithead"
+#inotifywait -e close_write -r "$TARGET" &&  echo "shithead"
+
+ echo "fucker"
+
+while (true);
+do
+  inotifywait -r -e close_write -e move_self "$TARGET" > /dev/null 2>&1
+  #echo "$COMMAND"
+  eval $COMMAND
+done
+
+
