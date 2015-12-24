@@ -1,23 +1,29 @@
 #! /bin/zsh
 
-#TODO use -fromfile argument of inotifywait, generate the file from ag
-TARGET=$1
+#TODO: show usage if less than two args were provided
+#TODO: we need to do one execution as soon as we start
+TMPFILE="/tmp/$(basename $0).$$.tmp"
+COMMAND=$1
 shift
-COMMAND=$@
+# TODO: remove -e from sed, since we only have one expression
+# TODO: this sed should really be in the call to inotifywait, so we have the raw user input
+TARGETS=$(echo $@ | sed -e 's/ /\n/g')
 
-echo "The target is: $TARGET"
-echo "The command is: $COMMAND"
+# echo "The target is:\n $TARGETS"
+# echo "The command is: $COMMAND"
+# echo "The tmp file is: $TMPFILE"
 
-#inotifywait -e close_write -r . &&  echo "shithead"
-#inotifywait -e close_write -r "$TARGET" &&  echo "shithead"
-
- echo "fucker"
-
-while (true);
+while true;
 do
-  inotifywait -r -e close_write -e move_self "$TARGET" > /dev/null 2>&1
-  #echo "$COMMAND"
-  eval $COMMAND
+  echo ">> Watching..."
+  inotifywait -r -e close_write -e move_self \
+    --fromfile =(echo $TARGETS) > $TMPFILE 2>&1
+
+  #TODO right now it looks like we only get one file name
+  CHANGED_FILES=$(grep -Po '.*(?=MOVE_SELF|CLOSE_WRITE)' $TMPFILE \
+    | sed 's/\n/ /g')
+
+  echo ">> Executing...\n"
+  eval "$COMMAND $CHANGED_FILES"
+  echo "\n>> Executed."
 done
-
-
