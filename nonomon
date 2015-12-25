@@ -1,6 +1,34 @@
 #! /bin/zsh
 
-#TODO: show usage if less than two args were provided
+#TODO: also define $1 and $2 as short versions of file and file_without_extension
+# show usage if less than two args were provided
+if [[ $# -lt 2 ]]; then
+  echo "\
+  Usage: nonomon <command> <fileglob> \
+    * command: The shell command you want to execute when\
+      the target file(s) change. Two shell variables are\
+      set before the command is executed:\
+        \
+      * file: The name of the file which was modified.\
+\
+      * file_without_extension: The name of the file which\
+        was modified, without it's file extension.\
+\
+    * file glob: The file glob which specifies which files\
+      to monitor\
+\
+    If the command does not include either the file or \
+    file_without_extension variables, the name of the modified\
+    file will be appended to the command.\
+\
+    Example without shell variables:\
+\
+    ./nonomon \"echo File: \" \
+"
+      
+  exit 1
+fi
+
 #TODO: we need to do one execution as soon as we start
 TMPFILE="/tmp/$(basename $0).$$.tmp"
 COMMAND=$1
@@ -34,6 +62,5 @@ do
   else
     eval "$COMMAND $CHANGED_FILES"
   fi
-
   echo "\n>> Executed"
 done
