@@ -5,9 +5,8 @@
 TMPFILE="/tmp/$(basename $0).$$.tmp"
 COMMAND=$1
 shift
-# TODO: remove -e from sed, since we only have one expression
 # TODO: this sed should really be in the call to inotifywait, so we have the raw user input
-TARGETS=$(echo $@ | sed -e 's/ /\n/g')
+TARGETS=$(echo $@ | sed 's/ /\n/g')
 
 # echo "The target is:\n $TARGETS"
  echo "The command is: $COMMAND"
@@ -23,11 +22,16 @@ do
   CHANGED_FILES=$(grep -Po '.*(?=MOVE_SELF|CLOSE_WRITE)' $TMPFILE \
     | sed 's/\n/ /g')
 
+  # we assume there is only one file, otherwise this would
+  # need to be iterative
+  FILE_WITHOUT_EXTENSION="${CHANGED_FILES%.*}"
+
   echo ">> Executing <<\n"
-  # if the command contains $file, set $file and execute without appending
-  # else, don't set file and append.
+  # if the command contains $file or $file_without_extension,
+  # set $file and execute without appending. Otherwise, don't 
+  # set file and append.
   if [[ "${COMMAND%%\$file*}" != $COMMAND ]]; then
-    eval "file=$CHANGED_FILES; $COMMAND"
+    eval "file=$CHANGED_FILES;file_without_extension=$FILE_WITHOUT_EXTENSION; $COMMAND"
   else
     eval "$COMMAND $CHANGED_FILES"
   fi
