@@ -10,7 +10,7 @@ shift
 TARGETS=$(echo $@ | sed -e 's/ /\n/g')
 
 # echo "The target is:\n $TARGETS"
-# echo "The command is: $COMMAND"
+ echo "The command is: $COMMAND"
 # echo "The tmp file is: $TMPFILE"
 
 while true;
@@ -24,6 +24,13 @@ do
     | sed 's/\n/ /g')
 
   echo ">> Executing <<\n"
-  eval "$COMMAND $CHANGED_FILES"
+  # if the command contains $file, set $file and execute without appending
+  # else, don't set file and append.
+  if [[ "${COMMAND%%\$file*}" != $COMMAND ]]; then
+    eval "file=$CHANGED_FILES; $COMMAND"
+  else
+    eval "$COMMAND $CHANGED_FILES"
+  fi
+
   echo "\n>> Executed"
 done
