@@ -15,7 +15,7 @@ TARGETS=$(echo $@ | sed -e 's/ /\n/g')
 
 while true;
 do
-  echo ">> Watching..."
+  echo ">> Watching <<"
   inotifywait -r -e close_write -e move_self \
     --fromfile =(echo $TARGETS) > $TMPFILE 2>&1
 
@@ -23,7 +23,7 @@ do
   CHANGED_FILES=$(grep -Po '.*(?=MOVE_SELF|CLOSE_WRITE)' $TMPFILE \
     | sed 's/\n/ /g')
 
-  echo ">> Executing...\n"
+  echo ">> Executing <<\n"
   eval "$COMMAND $CHANGED_FILES"
-  echo "\n>> Executed."
+  echo "\n>> Executed"
 done
