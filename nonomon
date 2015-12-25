@@ -3,29 +3,38 @@
 #TODO: also define $1 and $2 as short versions of file and file_without_extension
 # show usage if less than two args were provided
 if [[ $# -lt 2 ]]; then
-  echo "\
-  Usage: nonomon <command> <fileglob> \
-    * command: The shell command you want to execute when\
-      the target file(s) change. Two shell variables are\
-      set before the command is executed:\
-        \
-      * file: The name of the file which was modified.\
-\
-      * file_without_extension: The name of the file which\
-        was modified, without it's file extension.\
-\
-    * file glob: The file glob which specifies which files\
-      to monitor\
-\
-    If the command does not include either the file or \
-    file_without_extension variables, the name of the modified\
-    file will be appended to the command.\
-\
-    Example without shell variables:\
-\
-    ./nonomon \"echo File: \" \
+  echo "\n \
+  Usage: nonomon <command> <fileglob>\n \
+\n \
+    * command: The shell command you want to execute when\n\
+      the target file(s) change. Two shell variables are\n\
+      set before the command is executed:\n\
+        \n\
+        * file: The name of the file which was modified.\n\
+\n\
+        * file_without_extension: The name of the file which\n\
+          was modified, without it's file extension.\n\
+
+      Note that you must escape the command string to prevent\n\
+      it from being interpreted before nonomon receives the\n\
+      argument.\n\
+\n\
+    * file glob: The file glob which specifies which files\n\
+      to monitor\n\
+\n\
+    Examples:\n\
+\n\
+      # start server.js when any javascript file changes\n\
+      nonomon \"node server.js\" **/*.js\n\
+\n\
+      # echo the name of any file in the current directory\n\
+      # that changes\n\
+      nonomon \"echo File Changed: \\$file\" *  
+\n\
+      # when any c file changes, compile it to a file with\n\
+      # an \"o\" extension and execute the output file.\n\
+      nonomon \"gcc -g \\\$file -o \\\$file_without_extension.o && ./\\\$file_without_extension.o\" *.c\n\
 "
-      
   exit 1
 fi
 
@@ -45,6 +54,7 @@ do
   inotifywait -r -e close_write -e move_self \
     --fromfile =(echo $TARGETS | sed 's/ /\n/g') > $TMPFILE 2>&1
 
+  echo ">> Executing <<\n"
   #TODO right now it looks like we only get one file name
   CHANGED_FILES=$(grep -Po '.*(?=MOVE_SELF|CLOSE_WRITE)' $TMPFILE \
     | sed 's/\n/ /g')
@@ -53,14 +63,6 @@ do
   # need to be iterative
   FILE_WITHOUT_EXTENSION="${CHANGED_FILES%.*}"
 
-  echo ">> Executing <<\n"
-  # if the command contains $file or $file_without_extension,
-  # set $file and execute without appending. Otherwise, don't 
-  # set file and append.
-  if [[ "${COMMAND%%\$file*}" != $COMMAND ]]; then
-    eval "file=$CHANGED_FILES;file_without_extension=$FILE_WITHOUT_EXTENSION; $COMMAND"
-  else
-    eval "$COMMAND $CHANGED_FILES"
-  fi
+  eval "file=$CHANGED_FILES;file_without_extension=$FILE_WITHOUT_EXTENSION; $COMMAND"
   echo "\n>> Executed"
 done
