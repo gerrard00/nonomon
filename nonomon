@@ -5,18 +5,17 @@
 TMPFILE="/tmp/$(basename $0).$$.tmp"
 COMMAND=$1
 shift
-# TODO: this sed should really be in the call to inotifywait, so we have the raw user input
-TARGETS=$(echo $@ | sed 's/ /\n/g')
+TARGETS=$@
 
 # echo "The target is:\n $TARGETS"
- echo "The command is: $COMMAND"
+# echo "The command is: $COMMAND"
 # echo "The tmp file is: $TMPFILE"
 
 while true;
 do
   echo ">> Watching <<"
   inotifywait -r -e close_write -e move_self \
-    --fromfile =(echo $TARGETS) > $TMPFILE 2>&1
+    --fromfile =(echo $TARGETS | sed 's/ /\n/g') > $TMPFILE 2>&1
 
   #TODO right now it looks like we only get one file name
   CHANGED_FILES=$(grep -Po '.*(?=MOVE_SELF|CLOSE_WRITE)' $TMPFILE \
