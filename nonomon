@@ -54,9 +54,11 @@ do
   inotifywait -r -e close_write -e move_self \
     --fromfile =(echo $TARGETS | sed 's/ /\n/g') > $TMPFILE 2>&1
 
+  #TODO: if a process is still running, we need to stop it.
   echo ">> Executing <<\n"
+  
   #TODO right now it looks like we only get one file name
-  CHANGED_FILES=$(grep -Po '.*(?=MOVE_SELF|CLOSE_WRITE)' $TMPFILE \
+  CHANGED_FILES=$(grep -Po '.*(?= MOVE_SELF| CLOSE_WRITE)' $TMPFILE \
     | sed 's/\n/ /g')
 
   # we assume there is only one file, otherwise this would
