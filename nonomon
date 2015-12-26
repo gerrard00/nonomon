@@ -64,7 +64,12 @@ do
   # we assume there is only one file, otherwise this would
   # need to be iterative
   FILE_WITHOUT_EXTENSION="${CHANGED_FILES%.*}"
+  VARIABLES_TO_SET="file=$CHANGED_FILES;file_without_extension=$FILE_WITHOUT_EXTENSION"
 
-  eval "file=$CHANGED_FILES;file_without_extension=$FILE_WITHOUT_EXTENSION; $COMMAND"
-  echo "\n>> Executed"
+  # write out the command for informational purposes
+  eval "$VARIABLES_TO_SET; echo \"> $COMMAND\n\"" 
+  # execute the command
+  eval "$VARIABLES_TO_SET; $COMMAND" 
+
+  echo "\n>> Executed <<"
 done
