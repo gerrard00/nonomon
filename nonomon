@@ -33,7 +33,7 @@ if [[ $# -lt 2 ]]; then
 \n\
       # when any c file changes, compile it to a file with\n\
       # an \"o\" extension and execute the output file.\n\
-      nonomon \"gcc -g \\\$file -o \\\$file_without_extension.o && ./\\\$file_without_extension.o\" *.c\n\
+      nonomon 'gcc -g \$file -o \$file_without_extension.o && ./\$file_without_extension.o' *.c\n\
 "
   exit 1
 fi

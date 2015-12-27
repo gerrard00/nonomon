@@ -13,8 +13,8 @@ For now:
 ./nonomon "command to execute" <file glob>
 ```
 
-For example:
+For example, this command will compile and then execute any file in the current folder with a c extension:
 
 ```shell
-./nonomon "cc -g " *.c
+./nonomon 'gcc -g $file -o $file_without_extension.o && ./$file_without_extension.o' *.c
 ```
