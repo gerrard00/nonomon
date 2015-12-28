@@ -48,13 +48,18 @@ TARGETS=$@
 # echo "The command is: $COMMAND"
 # echo "The tmp file is: $TMPFILE"
 
+# kill child processes if we get the kill signal
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
 while true;
 do
   echo ">> Watching <<"
   inotifywait -r -e close_write -e move_self \
     --fromfile =(echo $TARGETS | sed 's/ /\n/g') > $TMPFILE 2>&1
 
-  #TODO: if a process is still running, we need to stop it.
+  # kill any already running jobs
+  kill $(ps --ppid "$$" -o pid --no-headers | tr '\n', ' ') &> /dev/null
+
   echo ">> Executing <<\n"
   
   #TODO right now it looks like we only get one file name
@@ -69,7 +74,10 @@ do
   # write out the command for informational purposes
   eval "$VARIABLES_TO_SET; echo \"> $COMMAND\n\"" 
   # execute the command
-  eval "$VARIABLES_TO_SET; $COMMAND" 
-
+  eval "$VARIABLES_TO_SET; $COMMAND &" 
+  # if our command exits quickly, we should wait and display
+  # our execute message after it's output
+  sleep 1
   echo "\n>> Executed <<"
+
 done
