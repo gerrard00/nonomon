@@ -1,5 +1,6 @@
 #! /bin/zsh
 
+# basically a glorified: while true; do x=$(fswatch -1 *.sh) && echo $x; done
 #TODO: also define $1 and $2 as short versions of file and file_without_extension
 # show usage if less than two args were provided
 if [[ $# -lt 2 ]]; then
@@ -54,17 +55,27 @@ trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 while true;
 do
   echo ">> Watching <<"
-  inotifywait -r -e close_write -e move_self \
-    --fromfile =(echo $TARGETS | sed 's/ /\n/g') > $TMPFILE 2>&1
+  # inotifywait -r -e close_write -e move_self \
+  #   --fromfile =(echo $TARGETS | sed 's/ /\n/g') > $TMPFILE 2>&1
+  echo "$TARGETS"
+  #debug
+  TARGETS="reftags_test.sh"
+  # no worky
+  CHANGED_FILES="$(fswatch -1 $TARGETS)"
+  # works
+  # CHANGED_FILES="$(fswatch -1 delete.sh reftags_test.sh)"
 
   # kill any already running jobs
-  kill $(ps --ppid "$$" -o pid --no-headers | tr '\n', ' ') &> /dev/null
+  kill $(pgrep -P $$ | tr '\n', ' ') &> /dev/null
 
   echo ">> Executing <<\n"
   
   #TODO right now it looks like we only get one file name
-  CHANGED_FILES=$(grep -Po '.*(?= MOVE_SELF| CLOSE_WRITE)' $TMPFILE \
-    | sed 's/\n/ /g')
+  # cat $TMPFILE
+  # perl -n -e'/(.*)(MOVE_SELF|CLOSE_WRITE)/ && print $1' $TMPFILE
+  # CHANGED_FILES=$(perl -n -e'/(.*)(MOVE_SELF|CLOSE_WRITE)/ && print $1' $TMPFILE)
+
+  
 
   # we assume there is only one file, otherwise this would
   # need to be iterative
